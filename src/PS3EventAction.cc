@@ -29,10 +29,13 @@
 
 #include "PS3EventAction.hh"
 #include "PS3RunAction.hh"
+#include "PS3Analysis.hh"
+#include "PS3DetectorConstruction.hh"
 
 #include "G4Event.hh"
 #include "G4RunManager.hh"
-#include "TH1F.hh"
+#include "G4ParticleGun.hh"
+#include "G4SystemOfUnits.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -41,17 +44,14 @@ PS3EventAction::PS3EventAction(PS3RunAction* runAction)
   fRunAction(runAction),
   fEdep(0.)
 {
-  fEdepLong = new TH1F("h_long","",20,0,7*m);
-  fEdepRad = new TH1F("h_rad","",20,0,1*m);
+  // Offset in z for logical volume
+  z0 = -8 * m / 2;
 } 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 PS3EventAction::~PS3EventAction()
-{
-  delete fEdepLong;
-  delete fEdepRad;
-}
+{}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -66,16 +66,16 @@ void PS3EventAction::EndOfEventAction(const G4Event*)
 {   
   // accumulate statistics in run action
   fRunAction->AddEdep(fEdep);
-  fRunAction->AddEdepHist(fEdepLong, fEdepRad);
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void StoreEdep(G4double edep, G4double z, G4double r) 
+void PS3EventAction::FillHistograms(G4double e, G4double z, G4double r) 
 {
-  // fill histogram of hit locations
-  fEdepLong->Fill(z, edep);
-  fEdepRad->Fill(r, edep);
+  auto analysisManager = G4AnalysisManager::Instance();
+  // fill ntuple
+  analysisManager->FillNtupleDColumn(0, e);
+  analysisManager->FillNtupleDColumn(1, z-z0);
+  analysisManager->FillNtupleDColumn(2, r);
+  analysisManager->AddNtupleRow();  
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

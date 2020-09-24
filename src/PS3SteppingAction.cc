@@ -72,8 +72,8 @@ void PS3SteppingAction::UserSteppingAction(const G4Step* step)
   G4double edepStep = step->GetTotalEnergyDeposit();
   fEventAction->AddEdep(edepStep);  
 
-  G4ThreeVector *endPoint = step->GetPostStepPoint()->GetPoisition();
-  fEventAction->StoreEdep(edepStep, endPoint->getZ(), endPoint->perp()); 
+  G4ThreeVector endPoint = step->GetPostStepPoint()->GetPosition();
+  fEventAction->FillHistograms(edepStep, endPoint.getZ(), endPoint.perp());
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

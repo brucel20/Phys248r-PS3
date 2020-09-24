@@ -30,6 +30,7 @@
 #include "PS3RunAction.hh"
 #include "PS3PrimaryGeneratorAction.hh"
 #include "PS3DetectorConstruction.hh"
+#include "PS3Analysis.hh"
 // #include "PS3Run.hh"
 
 #include "G4RunManager.hh"
@@ -47,37 +48,38 @@ PS3RunAction::PS3RunAction()
   fEdep(0.),
   fEdep2(0.)
 { 
-  // add new units for dose
-  // 
-  const G4double milligray = 1.e-3*gray;
-  const G4double microgray = 1.e-6*gray;
-  const G4double nanogray  = 1.e-9*gray;  
-  const G4double picogray  = 1.e-12*gray;
-   
-  new G4UnitDefinition("milligray", "milliGy" , "Dose", milligray);
-  new G4UnitDefinition("microgray", "microGy" , "Dose", microgray);
-  new G4UnitDefinition("nanogray" , "nanoGy"  , "Dose", nanogray);
-  new G4UnitDefinition("picogray" , "picoGy"  , "Dose", picogray); 
-
   // Register accumulable to the accumulable manager
   G4AccumulableManager* accumulableManager = G4AccumulableManager::Instance();
   accumulableManager->RegisterAccumulable(fEdep);
   accumulableManager->RegisterAccumulable(fEdep2);
 
-  fEdepLong = new std::vector<TH1F*>(0);
-  fEdepRad = new std::vector<TH1F*>(0);
+  // Create analysis manager
+  // The choice of analysis technology is done via selection of a namespace
+  // in PS3Analysis.hh
+  auto analysisManager = G4AnalysisManager::Instance();
+  G4cout << "Using " << analysisManager->GetType() << G4endl;
+
+  // Create directories 
+  //analysisManager->SetHistoDirectoryName("histograms");
+  //analysisManager->SetNtupleDirectoryName("ntuple");
+  analysisManager->SetVerboseLevel(1);
+  analysisManager->SetNtupleMerging(true);
+
+  // Creating histograms
+  analysisManager->CreateNtuple("showerEDep", "Energy Deposition in Volume");
+  analysisManager->CreateNtupleDColumn("E");
+  analysisManager->CreateNtupleDColumn("z");
+  analysisManager->CreateNtupleDColumn("r");
+  analysisManager->FinishNtuple();
+
+  analysisManager->AddNtupleRow();  
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 PS3RunAction::~PS3RunAction()
 {
-  for (auto h : fEdepLong)
-    if (h) delete h;
-  for (auto h : fEdepRad)
-    if (h) delete h;
-  delete fEdepLong;
-  delete fEdepRad;
+  delete G4AnalysisManager::Instance();  
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -86,11 +88,30 @@ void PS3RunAction::BeginOfRunAction(const G4Run*)
 { 
   // inform the runManager to save random number seed
   G4RunManager::GetRunManager()->SetRandomNumberStore(false);
+  
+  // Get analysis manager
+  auto analysisManager = G4AnalysisManager::Instance();
+  
+  const PS3DetectorConstruction* detectorConstruction
+      = static_cast<const PS3DetectorConstruction*>
+        (G4RunManager::GetRunManager()->GetUserDetectorConstruction());
+  G4LogicalVolume* scoringVolume = detectorConstruction->GetScoringVolume();
+  G4String material = scoringVolume->GetMaterial()->GetName();
+
+  const PS3PrimaryGeneratorAction* generatorAction
+   = static_cast<const PS3PrimaryGeneratorAction*>
+     (G4RunManager::GetRunManager()->GetUserPrimaryGeneratorAction());
+
+  const G4ParticleGun* particleGun = generatorAction->GetParticleGun();
+  G4String particleName = particleGun->GetParticleDefinition()->GetParticleName();
+  G4String particleEnergy = G4String(std::to_string((G4int)particleGun->GetParticleEnergy()));
+
+  G4String fileName = "PS3_histograms_"+material+"_"+particleName+"_"+particleEnergy;
+  analysisManager->OpenFile(fileName);
 
   // reset accumulables to their initial values
   G4AccumulableManager* accumulableManager = G4AccumulableManager::Instance();
   accumulableManager->Reset();
-
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -113,10 +134,6 @@ void PS3RunAction::EndOfRunAction(const G4Run* run)
   //if (rms > 0.) rms = std::sqrt(rms); else rms = 0.;  
   G4double rms = edep2 - edep*edep;
   if (rms > 0.) rms = std::sqrt(rms); else rms = 0.;  
-
-  const PS3DetectorConstruction* detectorConstruction
-   = static_cast<const PS3DetectorConstruction*>
-     (G4RunManager::GetRunManager()->GetUserDetectorConstruction());
 
   // Run conditions
   //  note: There is no primary generator action object for "master"
@@ -157,16 +174,11 @@ void PS3RunAction::EndOfRunAction(const G4Run* run)
      << "------------------------------------------------------------"
      << G4endl
      << G4endl;
-
-  TH1F* edepLongAverage = fEdepLong->at(0)->Clone("edepLongAverage");
-  edepLongAverage->Reset();
-  for (auto *h : fEdepLong)
-    edepLongAverage->Add(h,1/(G4double)nofEvents);
-  TH1F* edepRadAverage = fEdepRad->at(0)->Clone("edepRadAverage");
-  edepRadAverage->Reset();
-  for (auto *h : fEdepRad)
-    edepRadAverage->Add(h,1/(G4double)nofEvents);
-
+  // save histograms & ntuple
+  //
+  auto analysisManager = G4AnalysisManager::Instance();
+  analysisManager->Write();
+  analysisManager->CloseFile();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -175,15 +187,6 @@ void PS3RunAction::AddEdep(G4double edep)
 {
   fEdep  += edep;
   fEdep2 += edep*edep;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void PS3RunAction::StoreEdep(TH1F* edepLong, TH1F* edepRad) 
-{
-  size_t nEventsSaved = fEdepLong->size()
-  fEdepLong->push_back(edepLong->Clone((std::to_string(nEventsSaved+1)+"_l").c_str()));
-  fEdepRad->push_back(edepRad->Clone((std::to_string(nEventsSaved+1)+"_r").c_str()));
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

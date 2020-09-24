@@ -48,13 +48,12 @@ class PS3EventAction : public G4UserEventAction
     virtual void EndOfEventAction(const G4Event* event);
 
     void AddEdep(G4double edep) { fEdep += edep; }
-    void StoreEdep(G4double edep, G4double z, G4double r);
+    void FillHistograms(G4double e, G4double z, G4double r);
 
   private:
     PS3RunAction* fRunAction;
     G4double     fEdep;
-    TH1F* fEdepLong;
-    TH1F* fEdepRad;
+    G4double 	 z0;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

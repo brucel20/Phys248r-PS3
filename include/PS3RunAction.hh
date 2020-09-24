@@ -53,13 +53,10 @@ class PS3RunAction : public G4UserRunAction
     virtual void   EndOfRunAction(const G4Run*);
 
     void AddEdep (G4double edep); 
-    void StoreEdep (TH1F* edepLong, TH1F* edepRad);
 
   private:
     G4Accumulable<G4double> fEdep;
     G4Accumulable<G4double> fEdep2;
-    std::vector<TH1F*> fEdepLong;
-    std::vector<TH1F*> fEdepRad;
 };
 
 #endif
