@@ -106,7 +106,7 @@ void PS3RunAction::BeginOfRunAction(const G4Run*)
   G4String particleName = particleGun->GetParticleDefinition()->GetParticleName();
   G4String particleEnergy = G4String(std::to_string((G4int)particleGun->GetParticleEnergy()));
 
-  G4String fileName = "PS3_histograms_"+material+"_"+particleName+"_"+particleEnergy;
+  G4String fileName = "PS3_ntuple_"+material+"_"+particleName+"_"+particleEnergy;
   analysisManager->OpenFile(fileName);
 
   // reset accumulables to their initial values
