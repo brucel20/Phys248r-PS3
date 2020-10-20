@@ -61,11 +61,8 @@ G4VPhysicalVolume* PS3DetectorConstruction::Construct()
   
   // Envelope parameters
   //
-  G4double env_sizeXY = 4*m, env_sizeZ = 8*m;
-  //G4Material* env_mat = nist->FindOrBuildMaterial("G4_WATER");
-  G4Material* env_mat = nist->FindOrBuildMaterial("G4_lAr");
-  //G4Material* env_mat = nist->FindOrBuildMaterial("G4_STAINLESS-STEEL");
-  //G4Material* env_mat = nist->FindOrBuildMaterial("G4_Pb");
+  G4double env_sizeXY = 1.9*m, env_sizeZ = 0.5*m;
+  G4Material* env_mat = nist->FindOrBuildMaterial("G4_CESIUM_IODIDE");
    
   // Option to switch on/off checking of volumes overlaps
   //

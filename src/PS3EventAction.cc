@@ -45,7 +45,7 @@ PS3EventAction::PS3EventAction(PS3RunAction* runAction)
   fEdep(0.)
 {
   // Offset in z for logical volume
-  z0 = -8 * m / 2;
+  z0 = -0.5 * m / 2;
 } 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -68,14 +68,15 @@ void PS3EventAction::EndOfEventAction(const G4Event*)
   fRunAction->AddEdep(fEdep);
 }
 
-void PS3EventAction::FillHistograms(G4double e, G4double z, G4double r) 
+void PS3EventAction::FillHistograms(G4double e, G4double z, G4double x, G4double y) 
 {
   auto analysisManager = G4AnalysisManager::Instance();
   // fill ntuple
   analysisManager->FillNtupleDColumn(0, e);
   analysisManager->FillNtupleDColumn(1, z-z0);
-  analysisManager->FillNtupleDColumn(2, r);
-  analysisManager->AddNtupleRow();  
+  analysisManager->FillNtupleDColumn(2, std::sqrt(x*x+y*y));
+  analysisManager->AddNtupleRow();
+  analysisManager->FillH2(0, x, y, e);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

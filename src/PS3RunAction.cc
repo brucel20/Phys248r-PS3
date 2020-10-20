@@ -72,7 +72,12 @@ PS3RunAction::PS3RunAction()
   analysisManager->CreateNtupleDColumn("r");
   analysisManager->FinishNtuple();
 
+  // Width of Cesium Iodide crystal, either 25 or 50 mm
+  m_segment = 0.050*m;
+  m_segment = 0.025*m;
+  G4int nSegments = 1.9*m / m_segment;
   analysisManager->AddNtupleRow();  
+  analysisManager->CreateH2("EdepKTeV","",nSegments,-0.85*m,0.85*m,nSegments,-0.85*m,0.85*m);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -97,6 +102,7 @@ void PS3RunAction::BeginOfRunAction(const G4Run*)
         (G4RunManager::GetRunManager()->GetUserDetectorConstruction());
   G4LogicalVolume* scoringVolume = detectorConstruction->GetScoringVolume();
   G4String material = scoringVolume->GetMaterial()->GetName();
+  G4cout << "RADIATION LENGTH: " << scoringVolume->GetMaterial()->GetRadlen() << G4endl;
 
   const PS3PrimaryGeneratorAction* generatorAction
    = static_cast<const PS3PrimaryGeneratorAction*>
@@ -105,8 +111,9 @@ void PS3RunAction::BeginOfRunAction(const G4Run*)
   const G4ParticleGun* particleGun = generatorAction->GetParticleGun();
   G4String particleName = particleGun->GetParticleDefinition()->GetParticleName();
   G4String particleEnergy = G4String(std::to_string((G4int)particleGun->GetParticleEnergy()));
+  G4String segmentation = G4String(std::to_string(m_segment));
 
-  G4String fileName = "PS3_ntuple_"+material+"_"+particleName+"_"+particleEnergy;
+  G4String fileName = "PS4_ntuple_"+material+"_"+particleName+"_"+particleEnergy+"_"+segmentation+".root";
   analysisManager->OpenFile(fileName);
 
   // reset accumulables to their initial values

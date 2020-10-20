@@ -56,7 +56,7 @@ PS3PrimaryGeneratorAction::PS3PrimaryGeneratorAction()
     = particleTable->FindParticle(particleName="gamma");
   fParticleGun->SetParticleDefinition(particle);
   fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0.,0.,1.));
-  fParticleGun->SetParticleEnergy(20000.*MeV);
+  fParticleGun->SetParticleEnergy(10000.*MeV);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -100,7 +100,8 @@ void PS3PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
      "MyCode0002",JustWarning,msg);
   }
 
-  G4double x0 = 0. * envSizeXY;
+  G4double offset = 0.*m; // meters
+  G4double x0 = 0. * envSizeXY + offset;
   G4double y0 = 0. * envSizeXY;
   G4double z0 = -0.5 * envSizeZ;
   
