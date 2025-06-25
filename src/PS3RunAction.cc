@@ -40,6 +40,9 @@
 #include "G4LogicalVolume.hh"
 #include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4AnalysisManager.hh"
+#include "globals.hh"
+#include "G4Run.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -50,8 +53,8 @@ PS3RunAction::PS3RunAction()
 { 
   // Register accumulable to the accumulable manager
   G4AccumulableManager* accumulableManager = G4AccumulableManager::Instance();
-  accumulableManager->RegisterAccumulable(fEdep);
-  accumulableManager->RegisterAccumulable(fEdep2);
+  accumulableManager->Register(fEdep);
+  accumulableManager->Register(fEdep2);
 
   // Create analysis manager
   // The choice of analysis technology is done via selection of a namespace
@@ -60,34 +63,16 @@ PS3RunAction::PS3RunAction()
   G4cout << "Using " << analysisManager->GetType() << G4endl;
 
   // Create directories 
-  //analysisManager->SetHistoDirectoryName("histograms");
-  //analysisManager->SetNtupleDirectoryName("ntuple");
   analysisManager->SetVerboseLevel(1);
-  analysisManager->SetNtupleMerging(true);
+  if ( G4Threading::IsMultithreadedApplication() ) analysisManager->SetNtupleMerging(true);
 
-  // Creating histograms
-  analysisManager->CreateNtuple("showerEDep", "Energy Deposition in Volume");
-  analysisManager->CreateNtupleDColumn("E");
-  analysisManager->CreateNtupleDColumn("z");
-  analysisManager->CreateNtupleDColumn("r");
-  analysisManager->FinishNtuple();
-
-  // Width of Cesium Iodide crystal, either 25 or 50 mm
-  m_segment = 0.050*m;
-  m_segment = 0.025*m;
-  G4float offset = m_segment / 2;
-  G4int nSegments = 1.9*m / m_segment;
-  analysisManager->AddNtupleRow();  
-  analysisManager->CreateH2("EdepKTeV","",
-            nSegments, -0.95*m-offset, 0.95*m-offset,
-            nSegments, -0.95*m-offset, 0.95*m-offset);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 PS3RunAction::~PS3RunAction()
 {
-  delete G4AnalysisManager::Instance();  
+  //delete G4AnalysisManager::Instance();  
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -107,17 +92,54 @@ void PS3RunAction::BeginOfRunAction(const G4Run*)
   G4String material = scoringVolume->GetMaterial()->GetName();
   G4cout << "RADIATION LENGTH: " << scoringVolume->GetMaterial()->GetRadlen() << G4endl;
 
-  const PS3PrimaryGeneratorAction* generatorAction
-   = static_cast<const PS3PrimaryGeneratorAction*>
-     (G4RunManager::GetRunManager()->GetUserPrimaryGeneratorAction());
+  G4String fileName = "output_default.root";
+  //if (!IsMaster()) {
+  //  const PS3PrimaryGeneratorAction* generatorAction =
+  //      static_cast<const PS3PrimaryGeneratorAction*>(
+  //          G4RunManager::GetRunManager()->GetUserPrimaryGeneratorAction());
 
-  const G4ParticleGun* particleGun = generatorAction->GetParticleGun();
-  G4String particleName = particleGun->GetParticleDefinition()->GetParticleName();
-  G4String particleEnergy = G4String(std::to_string((G4int)particleGun->GetParticleEnergy()));
-  G4String segmentation = G4String(std::to_string(m_segment));
+  //  if (generatorAction) {
+  //    const G4ParticleGun* particleGun = generatorAction->GetParticleGun();
+  //    G4String name = particleGun->GetParticleDefinition()->GetParticleName();
+  //    G4double energy = particleGun->GetParticleEnergy();
+  //    fileName = "ntuple_" + name + "_" + std::to_string((int)energy) + ".root";
+  //  }
 
-  G4String fileName = "PS4_ntuple_"+material+"_"+particleName+"_"+particleEnergy+"_"+segmentation+".root";
+
+  //  //// Creating histograms
+  //  //analysisManager->CreateNtuple("showerEDep", "Energy Deposition in Volume");
+  //  //analysisManager->CreateNtupleDColumn("E");
+  //  //analysisManager->CreateNtupleDColumn("z");
+  //  //analysisManager->CreateNtupleDColumn("r");
+  //  //analysisManager->CreateNtupleDColumn("x");
+  //  //analysisManager->CreateNtupleDColumn("y");
+  //  //m_segment = 0.050*m;
+  //  //m_segment = 0.025*m;
+  //  //G4float offset = m_segment / 2;
+  //  //G4int nSegments = 1.9*m / m_segment;
+  //  //G4int histo2= analysisManager->CreateH2("EdepKTeV", "",
+  //  //      nSegments, -0.95*m-offset, 0.95*m-offset,
+  //  //      nSegments, -0.95*m-offset, 0.95*m-offset); // This doesn't appear to be filled?
+  //  //analysisManager->SetH2Activation(histo2, true);
+  //  //analysisManager->FinishNtuple();
+  //}
+  // Creating histograms
   analysisManager->OpenFile(fileName);
+  analysisManager->CreateNtuple("showerEDep", "Energy Deposition in Volume");
+  analysisManager->CreateNtupleDColumn("E");
+  analysisManager->CreateNtupleDColumn("z");
+  analysisManager->CreateNtupleDColumn("r");
+  analysisManager->CreateNtupleDColumn("x");
+  analysisManager->CreateNtupleDColumn("y");
+  m_segment = 0.050*m;
+  m_segment = 0.025*m;
+  G4float offset = m_segment / 2;
+  G4int nSegments = 1.9*m / m_segment;
+  G4int histo2= analysisManager->CreateH2("EdepKTeV", "",
+        nSegments, -0.95*m-offset, 0.95*m-offset,
+        nSegments, -0.95*m-offset, 0.95*m-offset); // This doesn't appear to be filled?
+  analysisManager->SetH2Activation(histo2, true);
+  analysisManager->FinishNtuple();
 
   // reset accumulables to their initial values
   G4AccumulableManager* accumulableManager = G4AccumulableManager::Instance();
@@ -200,4 +222,3 @@ void PS3RunAction::AddEdep(G4double edep)
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

@@ -36,6 +36,7 @@
 #include "G4RunManager.hh"
 #include "G4ParticleGun.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4AnalysisManager.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -70,13 +71,16 @@ void PS3EventAction::EndOfEventAction(const G4Event*)
 
 void PS3EventAction::FillHistograms(G4double e, G4double z, G4double x, G4double y) 
 {
-  auto analysisManager = G4AnalysisManager::Instance();
+  G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
   // fill ntuple
   analysisManager->FillNtupleDColumn(0, e);
   analysisManager->FillNtupleDColumn(1, z-z0);
   analysisManager->FillNtupleDColumn(2, std::sqrt(x*x+y*y));
+  analysisManager->FillNtupleDColumn(3, x);
+  analysisManager->FillNtupleDColumn(4, y);
   analysisManager->AddNtupleRow();
-  analysisManager->FillH2(0, x, y, e);
+  G4int h2Id = analysisManager->GetH2Id("EdepKTeV");
+  analysisManager->FillH2(h2Id, x, y, e); // LB -- doesn't appear to be filled?
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
