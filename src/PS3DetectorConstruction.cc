@@ -61,8 +61,8 @@ G4VPhysicalVolume* PS3DetectorConstruction::Construct()
   
   // Envelope parameters
   //
-  G4double env_sizeXY = 1.9*m, env_sizeZ = 0.5*m;
-  G4Material* env_mat = nist->FindOrBuildMaterial("G4_CESIUM_IODIDE");
+  G4double env_sizeXY = 5*m, env_sizeZ = 10*m;
+  G4Material* env_mat = nist->FindOrBuildMaterial("G4_lAr");
    
   // Option to switch on/off checking of volumes overlaps
   //
@@ -71,8 +71,9 @@ G4VPhysicalVolume* PS3DetectorConstruction::Construct()
   //     
   // World
   //
-  G4double world_sizeXY = 1.2*env_sizeXY;
-  G4double world_sizeZ  = 1.2*env_sizeZ;
+  G4double margin = 2*cm;
+  G4double world_sizeXY = env_sizeXY + margin;
+  G4double world_sizeZ  = env_sizeZ + margin;
   G4Material* world_mat = nist->FindOrBuildMaterial("G4_AIR");
   
   G4Box* solidWorld =    
