@@ -74,8 +74,8 @@
 /vis/set/textColour red  # Revert to default text colour (blue)
 #
 # Axes, scale, etc.
-/vis/scene/add/scale 50 cm z 1 0 0 manual 0 -85 0 cm # Simple scale line
-/vis/scene/add/scale 190 cm y 1 0 0 manual 0 0 25 cm # Simple scale line
+/vis/scene/add/scale 1000 cm z 1 0 0 manual 0 -250 0 cm # Simple scale line
+/vis/scene/add/scale 500 cm y 1 0 0 manual 0 0 -500 cm # Simple scale line
 /vis/scene/add/eventID # Drawn at end of event
 /vis/scene/add/date    # Date stamp
 #/vis/scene/add/text 0 0 0 m 20 0 -150 700 cm
@@ -89,6 +89,8 @@
 /vis/viewer/set/style surface
 /vis/viewer/set/hiddenMarker true
 /vis/viewer/set/viewpointThetaPhi 270 0
+/vis/viewer/zoom 1.6     # zoom in a bit more
+/vis/viewer/pan 0.10 0.00  # nudge the view if needed
 #
 # Re-establish auto refreshing and verbosity:
 /vis/viewer/set/autoRefresh true
