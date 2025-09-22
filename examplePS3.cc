@@ -29,20 +29,17 @@
 
 #include "PS3DetectorConstruction.hh"
 #include "PS3ActionInitialization.hh"
-
-#ifdef G4MULTITHREADED
-#include "G4MTRunManager.hh"
-#else
-#include "G4RunManager.hh"
-#endif
-
-#include "G4UImanager.hh"
 #include "QBBC.hh"
 
-#include "G4VisExecutive.hh"
+#include "G4RunManagerFactory.hh"
+#include "G4SteppingVerbose.hh"
 #include "G4UIExecutive.hh"
+#include "G4UImanager.hh"
+#include "G4VisExecutive.hh"
+#include <iostream>  // Add this line
+#include "G4AnalysisManager.hh"
 
-#include "Randomize.hh"
+//#include "Randomize.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -58,13 +55,15 @@ int main(int argc,char** argv)
   // Optionally: choose a different Random engine...
   // G4Random::setTheEngine(new CLHEP::MTwistEngine);
   
+  // use G4SteppingVerboseWithUnits
+  G4int precision = 4;
+  G4SteppingVerbose::UseBestUnit(precision);
+
+  G4AnalysisManager::Instance()->SetNtupleMerging(true);
+
   // Construct the default run manager
   //
-#ifdef G4MULTITHREADED
-  G4MTRunManager* runManager = new G4MTRunManager;
-#else
-  G4RunManager* runManager = new G4RunManager;
-#endif
+  auto runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::Default);
 
   // Set mandatory initialization classes
   //
@@ -72,18 +71,20 @@ int main(int argc,char** argv)
   runManager->SetUserInitialization(new PS3DetectorConstruction());
 
   // Physics list
-  G4VModularPhysicsList* physicsList = new QBBC;
+  auto physicsList = new QBBC;
   physicsList->SetVerboseLevel(1);
   runManager->SetUserInitialization(physicsList);
     
   // User action initialization
   runManager->SetUserInitialization(new PS3ActionInitialization());
   
-  // Initialize visualization
-  //
-  G4VisManager* visManager = new G4VisExecutive;
-  // G4VisExecutive can take a verbosity argument - see /vis/verbose guidance.
-  // G4VisManager* visManager = new G4VisExecutive("Quiet");
+  // Initialize visualization with the default graphics system
+  auto visManager = new G4VisExecutive(argc, argv);
+  // Constructors can also take optional arguments:
+  // - a graphics system of choice, eg. "OGL"
+  // - and a verbosity argument - see /vis/verbose guidance.
+  // auto visManager = new G4VisExecutive(argc, argv, "OGL", "Quiet");
+  // auto visManager = new G4VisExecutive("Quiet");
   visManager->Initialize();
 
   // Get the pointer to the User Interface manager
