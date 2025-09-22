@@ -110,6 +110,7 @@ void PS3RunAction::BeginOfRunAction(const G4Run*)
       G4double energy = particleGun->GetParticleEnergy();
       fileName = "ntuple_" + name + "_" + std::to_string((int)energy) + ".root";
     }
+    analysisManager->OpenFile(fileName);
 
     //// Creating histograms
     analysisManager->CreateNtuple("showerEDep", "Energy Deposition in Volume");
