@@ -46,7 +46,9 @@ PS3EventAction::PS3EventAction(PS3RunAction* runAction)
   fEdep(0.)
 {
   // Offset in z for logical volume
-  z0 = -0.5 * m / 2;
+  G4double halfZ = 0.5 * (10.0*m);  // = 5 m
+  // front face global z coordinate (center is 0, so front is -halfZ)
+  G4double z_front = -halfZ;
 } 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -67,17 +69,17 @@ void PS3EventAction::EndOfEventAction(const G4Event*)
 {   
   // accumulate statistics in run action
   fRunAction->AddEdep(fEdep);
-  auto analysisManager = G4AnalysisManager::Instance();
-  analysisManager->FillNtupleDColumn(/*ntupleId=*/0, /*colId=*/0, fEdep/1000);
-  analysisManager->AddNtupleRow();
+  //auto analysisManager = G4AnalysisManager::Instance();
+  //analysisManager->FillNtupleDColumn(/*ntupleId=*/0, /*colId=*/0, fEdep/1000);
+  //analysisManager->AddNtupleRow();
 }
 
 void PS3EventAction::FillHistograms(G4double e, G4double z, G4double x, G4double y) 
 {
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
   // fill ntuple
-  std::cout << "here 2" << std::endl;
   analysisManager->FillNtupleDColumn(0, e);
+  G4double z0 = -0.5 * (10.0*m); // zero at start of volume/particle gun position
   analysisManager->FillNtupleDColumn(1, z-z0);
   analysisManager->FillNtupleDColumn(2, std::sqrt(x*x+y*y));
   analysisManager->FillNtupleDColumn(3, x);

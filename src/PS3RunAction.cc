@@ -66,10 +66,14 @@ PS3RunAction::PS3RunAction()
   analysisManager->SetVerboseLevel(1);
   if ( G4Threading::IsMultithreadedApplication() ) analysisManager->SetNtupleMerging(true);
 
-  analysisManager->CreateNtuple("edep", "Total Event Energy Deposition");
-  analysisManager->CreateNtupleDColumn("Edep");
+  //// Creating histograms
+  analysisManager->CreateNtuple("showerEDep", "Energy Deposition in Volume");
+  analysisManager->CreateNtupleDColumn("E");
+  analysisManager->CreateNtupleDColumn("z");
+  analysisManager->CreateNtupleDColumn("r");
+  analysisManager->CreateNtupleDColumn("x");
+  analysisManager->CreateNtupleDColumn("y");
   analysisManager->FinishNtuple();
-
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -88,6 +92,7 @@ void PS3RunAction::BeginOfRunAction(const G4Run*)
   
   // Get analysis manager
   auto analysisManager = G4AnalysisManager::Instance();
+  analysisManager->SetNtupleMerging(true);
   
   const PS3DetectorConstruction* detectorConstruction
       = static_cast<const PS3DetectorConstruction*>
@@ -97,7 +102,6 @@ void PS3RunAction::BeginOfRunAction(const G4Run*)
   G4cout << "RADIATION LENGTH: " << scoringVolume->GetMaterial()->GetRadlen() << G4endl;
 
   G4String fileName = "output_default.root";
-  //analysisManager->OpenFile(fileName);
 
   if (!IsMaster()) {
     const PS3PrimaryGeneratorAction* generatorAction =
@@ -111,42 +115,7 @@ void PS3RunAction::BeginOfRunAction(const G4Run*)
       fileName = "ntuple_" + name + "_" + std::to_string((int)energy) + ".root";
     }
     analysisManager->OpenFile(fileName);
-
-    //// Creating histograms
-    analysisManager->CreateNtuple("showerEDep", "Energy Deposition in Volume");
-    analysisManager->CreateNtupleDColumn("E");
-    analysisManager->CreateNtupleDColumn("z");
-    analysisManager->CreateNtupleDColumn("r");
-    analysisManager->CreateNtupleDColumn("x");
-    analysisManager->CreateNtupleDColumn("y");
-    m_segment = 0.050*m;
-    m_segment = 0.025*m;
-    G4float offset = m_segment / 2;
-    G4int nSegments = 1.9*m / m_segment;
-    G4int histo2= analysisManager->CreateH2("EdepKTeV", "",
-          nSegments, -0.95*m-offset, 0.95*m-offset,
-          nSegments, -0.95*m-offset, 0.95*m-offset); // This doesn't appear to be filled?
-    analysisManager->SetH2Activation(histo2, true);
-    analysisManager->FinishNtuple();
   }
-  // Creating histograms
-  //analysisManager->OpenFile(fileName);
-  //analysisManager->CreateNtuple("showerEDep", "Energy Deposition in Volume");
-  //analysisManager->CreateNtupleDColumn("E");
-  //analysisManager->CreateNtupleDColumn("z");
-  //analysisManager->CreateNtupleDColumn("r");
-  //analysisManager->CreateNtupleDColumn("x");
-  //analysisManager->CreateNtupleDColumn("y");
-  //std::cout << "here1" << std::endl;
-  //m_segment = 0.050*m;
-  //m_segment = 0.025*m;
-  //G4float offset = m_segment / 2;
-  //G4int nSegments = 1.9*m / m_segment;
-  //G4int histo2= analysisManager->CreateH2("EdepKTeV", "",
-  //      nSegments, -0.95*m-offset, 0.95*m-offset,
-  //      nSegments, -0.95*m-offset, 0.95*m-offset); // This doesn't appear to be filled?
-  //analysisManager->SetH2Activation(histo2, true);
-  //analysisManager->FinishNtuple();
 
   // reset accumulables to their initial values
   G4AccumulableManager* accumulableManager = G4AccumulableManager::Instance();
