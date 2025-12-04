@@ -38,6 +38,7 @@
 #include "G4VisExecutive.hh"
 #include <iostream>  // Add this line
 #include "G4AnalysisManager.hh"
+#include "G4StepLimiterPhysics.hh"  // ← ADD THIS LINE
 
 //#include "Randomize.hh"
 
@@ -71,8 +72,13 @@ int main(int argc,char** argv)
   runManager->SetUserInitialization(new PS3DetectorConstruction());
 
   // Physics list
+  //auto physicsList = new QBBC;
+  //physicsList->SetVerboseLevel(1);
+  //runManager->SetUserInitialization(physicsList);
+  // Physics list
   auto physicsList = new QBBC;
   physicsList->SetVerboseLevel(1);
+  physicsList->RegisterPhysics(new G4StepLimiterPhysics());  // ← ADD THIS LINE
   runManager->SetUserInitialization(physicsList);
     
   // User action initialization

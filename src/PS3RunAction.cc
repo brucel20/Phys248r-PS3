@@ -43,6 +43,7 @@
 #include "G4AnalysisManager.hh"
 #include "globals.hh"
 #include "G4Run.hh"
+#include "G4UserLimits.hh"  // ← ADD THIS LINE
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -66,9 +67,9 @@ PS3RunAction::PS3RunAction()
   analysisManager->SetVerboseLevel(1);
   if ( G4Threading::IsMultithreadedApplication() ) analysisManager->SetNtupleMerging(true);
 
-  analysisManager->CreateNtuple("edep", "Total Event Energy Deposition");
-  analysisManager->CreateNtupleDColumn("Edep");
-  analysisManager->FinishNtuple();
+ //analysisManager->CreateNtuple("edep", "Total Event Energy Deposition");
+  //analysisManager->CreateNtupleDColumn("Edep");
+  //analysisManager->FinishNtuple();
 
 }
 
@@ -95,6 +96,12 @@ void PS3RunAction::BeginOfRunAction(const G4Run*)
   G4LogicalVolume* scoringVolume = detectorConstruction->GetScoringVolume();
   G4String material = scoringVolume->GetMaterial()->GetName();
   G4cout << "RADIATION LENGTH: " << scoringVolume->GetMaterial()->GetRadlen() << G4endl;
+
+  // ← ADD THESE LINES HERE:
+  //G4cout << "Setting step limit of 0.5 mm in scoring volume" << G4endl;
+  //G4double maxStep = 0.5*mm;
+  //G4UserLimits* stepLimit = new G4UserLimits(maxStep);
+  //scoringVolume->SetUserLimits(stepLimit);
 
   G4String fileName = "output_default.root";
   analysisManager->OpenFile(fileName);
@@ -131,12 +138,12 @@ void PS3RunAction::BeginOfRunAction(const G4Run*)
   //}
   // Creating histograms
   //analysisManager->OpenFile(fileName);
-  //analysisManager->CreateNtuple("showerEDep", "Energy Deposition in Volume");
-  //analysisManager->CreateNtupleDColumn("E");
-  //analysisManager->CreateNtupleDColumn("z");
-  //analysisManager->CreateNtupleDColumn("r");
-  //analysisManager->CreateNtupleDColumn("x");
-  //analysisManager->CreateNtupleDColumn("y");
+  analysisManager->CreateNtuple("showerEDep", "Energy Deposition in Volume");
+  analysisManager->CreateNtupleDColumn("E");
+  analysisManager->CreateNtupleDColumn("z");
+  analysisManager->CreateNtupleDColumn("r");
+  analysisManager->CreateNtupleDColumn("x");
+  analysisManager->CreateNtupleDColumn("y");
   //std::cout << "here1" << std::endl;
   //m_segment = 0.050*m;
   //m_segment = 0.025*m;
@@ -146,7 +153,7 @@ void PS3RunAction::BeginOfRunAction(const G4Run*)
   //      nSegments, -0.95*m-offset, 0.95*m-offset,
   //      nSegments, -0.95*m-offset, 0.95*m-offset); // This doesn't appear to be filled?
   //analysisManager->SetH2Activation(histo2, true);
-  //analysisManager->FinishNtuple();
+  analysisManager->FinishNtuple();
 
   // reset accumulables to their initial values
   G4AccumulableManager* accumulableManager = G4AccumulableManager::Instance();
@@ -218,6 +225,7 @@ void PS3RunAction::EndOfRunAction(const G4Run* run)
   auto analysisManager = G4AnalysisManager::Instance();
   analysisManager->Write();
   analysisManager->CloseFile();
+  analysisManager->Clear(); // added line, may have to delete
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

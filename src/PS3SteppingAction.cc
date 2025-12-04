@@ -35,6 +35,7 @@
 #include "G4Event.hh"
 #include "G4RunManager.hh"
 #include "G4LogicalVolume.hh"
+#include "G4SystemOfUnits.hh"  // ADD THIS LINE
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -72,8 +73,25 @@ void PS3SteppingAction::UserSteppingAction(const G4Step* step)
   G4double edepStep = step->GetTotalEnergyDeposit();
   fEventAction->AddEdep(edepStep);  
 
-  G4ThreeVector endPoint = step->GetPostStepPoint()->GetPosition();
-  //fEventAction->FillHistograms(edepStep, endPoint.getZ(), endPoint.getX(), endPoint.getY());
+  // Get track info and position
+  G4Track* track = step->GetTrack();
+  G4ThreeVector position = step->GetPostStepPoint()->GetPosition();
+  G4double depth = position.getZ()/cm + 20.0;
+
+  // TEMPORARY DEBUG: Check large energy deposits
+  //if (edepStep > 10.0*MeV) {
+    //G4cout << "Large deposit: depth=" << depth 
+         //  << " cm, E=" << edepStep/MeV 
+          // << " MeV, particle=" << track->GetDefinition()->GetParticleName()
+         //  << " parentID=" << track->GetParentID()
+          // << " step length=" << step->GetStepLength()/mm << " mm"
+          // << G4endl;
+  //}
+
+  // Record ALL energy deposition (realistic dose)
+  if (edepStep > 0.001*MeV) {
+    fEventAction->FillHistograms(edepStep, position.getZ()/cm, position.getX()/cm, position.getY()/cm);
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -39,6 +39,7 @@
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4UserLimits.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -55,15 +56,30 @@ PS3DetectorConstruction::~PS3DetectorConstruction()
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 G4VPhysicalVolume* PS3DetectorConstruction::Construct()
-{  
+{
+  
   // Get nist material manager
   G4NistManager* nist = G4NistManager::Instance();
   
   // Envelope parameters
+  auto* rock = new G4Material(
+	  "StandardRock",
+	  11.,
+	  22.*g/mole,
+	  2.65*g/cm3,
+	  kStateSolid
+  ); 
   //
-  G4double env_sizeXY = 5*m, env_sizeZ = 10*m;
-  G4Material* env_mat = nist->FindOrBuildMaterial("G4_lAr");
-   
+  G4double env_sizeXY = 30*cm, env_sizeZ = 40*cm;
+  //G4Material* env_mat = nist->FindOrBuildMaterial("G4_lAr");
+  //G4Material* env_mat = nist->FindOrBuildMaterial("G4_Pb");
+  //G4Material* env_mat = nist->FindOrBuildMaterial("G4_Fe");
+  //G4Material* env_mat = rock;
+  //G4Material* env_mat = nist->FindOrBuildMaterial("G4_WATER");
+  G4Material* env_mat = nist->FindOrBuildMaterial("G4_TISSUE_SOFT_ICRP");
+
+
+  
   // Option to switch on/off checking of volumes overlaps
   //
   G4bool checkOverlaps = true;
@@ -109,7 +125,8 @@ G4VPhysicalVolume* PS3DetectorConstruction::Construct()
                
   new G4PVPlacement(0,                       //no rotation
                     G4ThreeVector(),         //at (0,0,0)
-                    logicEnv,                //its logical volume
+                    logicEnv,  
+                                  //its logical volume
                     "Envelope",              //its name
                     logicWorld,              //its mother  volume
                     false,                   //no boolean operation
@@ -178,6 +195,12 @@ G4VPhysicalVolume* PS3DetectorConstruction::Construct()
   // Set Shape2 as scoring volume
   //
   fScoringVolume = logicEnv;
+  // Set step limit in water phantom
+  G4double maxStep = 0.5*mm;
+  G4UserLimits* stepLimit = new G4UserLimits(maxStep);
+  logicEnv->SetUserLimits(stepLimit);
+  
+  G4cout << "Step limit of 0.5 mm set in scoring volume" << G4endl;
 
   //
   //always return the physical World

@@ -45,9 +45,8 @@ PS3EventAction::PS3EventAction(PS3RunAction* runAction)
   fRunAction(runAction),
   fEdep(0.)
 {
-  // Offset in z for logical volume
-  z0 = -0.5 * m / 2;
-} 
+  z0 = 0.0;  // Changed from -0.5 * m / 2
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -68,17 +67,17 @@ void PS3EventAction::EndOfEventAction(const G4Event*)
   // accumulate statistics in run action
   fRunAction->AddEdep(fEdep);
   auto analysisManager = G4AnalysisManager::Instance();
-  analysisManager->FillNtupleDColumn(/*ntupleId=*/0, /*colId=*/0, fEdep/1000);
-  analysisManager->AddNtupleRow();
+  //analysisManager->FillNtupleDColumn(/*ntupleId=*/0, /*colId=*/0, fEdep/1000);
+  //analysisManager->AddNtupleRow();
 }
 
 void PS3EventAction::FillHistograms(G4double e, G4double z, G4double x, G4double y) 
 {
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
   // fill ntuple
-  std::cout << "here 2" << std::endl;
+  //std::cout << "here 2" << std::endl;
   analysisManager->FillNtupleDColumn(0, e);
-  analysisManager->FillNtupleDColumn(1, z-z0);
+  analysisManager->FillNtupleDColumn(1, z);
   analysisManager->FillNtupleDColumn(2, std::sqrt(x*x+y*y));
   analysisManager->FillNtupleDColumn(3, x);
   analysisManager->FillNtupleDColumn(4, y);

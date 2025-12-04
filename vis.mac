@@ -74,8 +74,9 @@
 /vis/set/textColour red  # Revert to default text colour (blue)
 #
 # Axes, scale, etc.
-/vis/scene/add/scale 1000 cm z 1 0 0 manual 0 -250 0 cm # Simple scale line
-/vis/scene/add/scale 500 cm y 1 0 0 manual 0 0 -500 cm # Simple scale line
+# Geometry is 30x30x40 cm (envelope) - scale bars match actual dimensions
+/vis/scene/add/scale 30 cm x 1 0 0 manual 0 -18 -22 cm # 30 cm horizontal (matches width)
+/vis/scene/add/scale 40 cm z 1 0 0 manual -18 0 0 cm # 40 cm vertical (matches height)
 /vis/scene/add/eventID # Drawn at end of event
 /vis/scene/add/date    # Date stamp
 #/vis/scene/add/text 0 0 0 m 20 0 -150 700 cm
